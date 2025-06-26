@@ -1,0 +1,14 @@
+run_main: build_add
+	wasmtime --invoke main build/add.wasm
+
+run_echo: build_add
+	wasmtime --invoke echo build/add.wasm
+
+build_add:
+    just build add.wat add.wasm
+
+build FILES OUT:
+    wat2wasm {{FILES}} -o build/{{OUT}}
+
+init:
+	mkdir build
