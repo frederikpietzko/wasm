@@ -1,0 +1,9 @@
+[package]
+name = "http_server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bytecodec = "0.5.0"
+httpcodec = "0.2.3"
+wasmedge_wasi_socket = "0.5.5"

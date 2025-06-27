@@ -1,0 +1,4 @@
+build:
+	cargo build --target wasm32-wasip1
+run: build
+	wasmedge target/wasm32-wasip1/debug/http_server.wasm
