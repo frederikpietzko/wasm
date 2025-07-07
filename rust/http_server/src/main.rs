@@ -1,40 +1,22 @@
+mod prelude;
+mod websocket_upgrade;
+
 use bytecodec::DecodeExt;
-use httpcodec::{
-    HeaderField, HttpVersion, Method, ReasonPhrase, Request, RequestDecoder, Response, StatusCode,
-};
+use httpcodec::{HttpVersion, Method, ReasonPhrase, Request, RequestDecoder, Response, StatusCode};
+use prelude::*;
 use sha1::{Digest, Sha1};
 use std::io::{Read, Write};
 use wasmedge_wasi_socket::{TcpListener, TcpStream};
+use websocket_upgrade::UpgradeResponseHandler;
 
-fn handle_http(req: Request<String>) -> bytecodec::Result<Response<String>> {
+fn handle_http(req: Request<String>) -> Result<Response<String>> {
     if (is_upgrade_request(&req)?) {
-        let mut response = Response::new(
-            HttpVersion::V1_1,
-            StatusCode::new(101)?,
-            ReasonPhrase::new("Switching Protocols")?,
-            "Switching to WebSocket protocol".to_string(),
-        );
-        let mut headers = response.header_mut();
-        headers.add_field(HeaderField::new("Upgrade", "websocket")?);
-        headers.add_field(HeaderField::new("Connection", "Upgrade")?);
-        let guid = uuid::Uuid::new_v4();
-        todo!("Add WebSocket Sec-WebSocket-Accept header");
-        // Websocket server should calculate Sec-WebSocket-Accept by
-        // taking Sec-WebSocket-Key from the request and
-        // applying the SHA-1 hash with the WebSocket GUID.
-        // base64 encode the result and set it in the response.
-
-        return Ok(response);
+        return UpgradeResponseHandler::new(req).handle_upgrade();
     }
-    Ok(Response::new(
-        HttpVersion::V1_0,
-        StatusCode::new(200)?,
-        ReasonPhrase::new("OK")?,
-        format!("echo, {}!", req.body()),
-    ))
+    Err(anyhow!("Not an upgrade request"))
 }
 
-fn is_upgrade_request(req: &Request<String>) -> bytecodec::Result<bool> {
+fn is_upgrade_request(req: &Request<String>) -> Result<bool> {
     if (req.method() != Method::new("GET")?) {
         return Ok(false);
     }
@@ -52,25 +34,33 @@ fn is_upgrade_request(req: &Request<String>) -> bytecodec::Result<bool> {
     Ok(true)
 }
 
-fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
+fn read_stream(stream: &mut TcpStream) -> Result<Vec<u8>> {
     let mut buff = [0u8; 1024];
     let mut data = Vec::new();
 
     loop {
         let n = stream.read(&mut buff)?;
+        if n == 0 {
+            break; // EOF
+        }
         data.extend_from_slice(&buff[0..n]);
         if n < 1024 {
-            break;
+            break; // No more data
         }
     }
+    Ok(data)
+}
+
+fn handle_client(mut stream: TcpStream) -> Result<()> {
+    let data = read_stream(&mut stream)?;
+
     let mut decoder =
         RequestDecoder::<httpcodec::BodyDecoder<bytecodec::bytes::Utf8Decoder>>::default();
-    let req = match decoder.decode_from_bytes(data.as_slice()) {
+    let websocket_upgrade = match decoder.decode_from_bytes(data.as_slice()) {
         Ok(req) => handle_http(req),
-        Err(e) => Err(e),
+        Err(e) => Err(anyhow!("Failed to decode request: {}", e)),
     };
-
-    let r = req.unwrap_or_else(|e| {
+    let websocket_upgrade = websocket_upgrade.unwrap_or_else(|e| {
         let err = format!("{:?}", e);
         Response::new(
             HttpVersion::V1_0,
@@ -80,8 +70,9 @@ fn handle_client(mut stream: TcpStream) -> std::io::Result<()> {
         )
     });
 
-    let write_buf = r.to_string();
+    let write_buf = websocket_upgrade.to_string();
     stream.write(write_buf.as_bytes())?;
+    loop {}
     stream.shutdown(std::net::Shutdown::Both)?;
     Ok(())
 }

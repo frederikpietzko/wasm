@@ -10,3 +10,4 @@ wasmedge_wasi_socket = "0.5.5"
 uuid = { version = "1.17.0", features = ["v4"] }
 base64 = "0.22.1"
 sha1 = "0.10"
+anyhow = "1.0.98"
