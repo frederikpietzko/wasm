@@ -10,7 +10,6 @@
         let webSocket = new WebSocket('ws://localhost:8080/ws');
         webSocket.onopen = function (event) {
             console.log('WebSocket is open now.');
-            webSocket.send('Hello Server!');
         };
         webSocket.onmessage = function (event) {
             console.log('Message from server:', event.data);

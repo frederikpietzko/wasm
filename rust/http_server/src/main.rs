@@ -10,8 +10,10 @@ use wasmedge_wasi_socket::{TcpListener, TcpStream};
 use websocket_upgrade::UpgradeResponseHandler;
 
 fn handle_http(req: Request<String>) -> Result<Response<String>> {
+    println!("Handling HTTP request:\n{}", req);
     if (is_upgrade_request(&req)?) {
-        return UpgradeResponseHandler::new(req).handle_upgrade();
+        let result = UpgradeResponseHandler::new(req).handle_upgrade();
+        return result;
     }
     Err(anyhow!("Not an upgrade request"))
 }
@@ -71,10 +73,13 @@ fn handle_client(mut stream: TcpStream) -> Result<()> {
     });
 
     let write_buf = websocket_upgrade.to_string();
-    stream.write(write_buf.as_bytes())?;
-    loop {}
-    stream.shutdown(std::net::Shutdown::Both)?;
+    stream.write_all(write_buf.as_bytes())?;
+    websocket_message_loop(stream)?;
     Ok(())
+}
+
+fn websocket_message_loop(mut stream: TcpStream) -> Result<()> {
+    loop {}
 }
 
 fn main() -> std::io::Result<()> {
