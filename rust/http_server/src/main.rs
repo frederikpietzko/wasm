@@ -2,19 +2,29 @@ mod prelude;
 mod websocket_upgrade;
 
 use bytecodec::DecodeExt;
+use env_logger::Builder;
 use httpcodec::{HttpVersion, Method, ReasonPhrase, Request, RequestDecoder, Response, StatusCode};
 use prelude::*;
-use sha1::{Digest, Sha1};
 use std::io::{Read, Write};
 use wasmedge_wasi_socket::{TcpListener, TcpStream};
 use websocket_upgrade::UpgradeResponseHandler;
 
 fn handle_http(req: Request<String>) -> Result<Response<String>> {
-    println!("Handling HTTP request:\n{}", req);
+    info!(
+        "Handling HTTP request: {} {}",
+        req.method(),
+        req.request_target()
+    );
+    debug!("Received HTTP request:\n{}", req);
     if (is_upgrade_request(&req)?) {
         let result = UpgradeResponseHandler::new(req).handle_upgrade();
         return result;
     }
+    error!(
+        "Request to {} {} was not an upgrade request!",
+        req.method(),
+        req.request_target()
+    );
     Err(anyhow!("Not an upgrade request"))
 }
 
@@ -83,14 +93,12 @@ fn websocket_message_loop(mut stream: TcpStream) -> Result<()> {
 }
 
 fn main() -> std::io::Result<()> {
-    let mut hasher = Sha1::new();
-    hasher.update(b"hello world");
-    let hash = hasher.finalize();
-    println!("SHA1 hash of 'hello world': {:x}", hash);
+    Builder::new().filter_level(log::LevelFilter::Info).init();
     let port = std::env::var("PORT".to_string()).unwrap_or("8080".to_string());
-    println!("starting server at {}", port);
+    let address = format!("0.0.0.0:{}", port);
+    info!("Starting server on {}", address);
 
-    let listener = TcpListener::bind(format!("0.0.0.0:{}", port), false)?;
+    let listener = TcpListener::bind(address, false)?;
     loop {
         let _ = handle_client(listener.accept(false)?.0);
     }
