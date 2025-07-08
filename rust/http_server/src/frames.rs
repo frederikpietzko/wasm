@@ -106,10 +106,10 @@ fn mask_and_length(buffer: &[u8]) -> Result<(bool, u64, usize)> {
         }
         127 => {
             let length_bytes = &buffer[2..10];
-            let payload_length = u64::from_be_bytes(length_bytes.try_into()?) as u64;
+            let payload_length = u64::from_be_bytes(length_bytes.try_into()?);
             Ok((mask, payload_length, 10))
         }
-        _ => Err(anyhow!("Fuck")),
+        _ => Err(anyhow!("Payload length exceeds maximum size")),
     }
 }
 
