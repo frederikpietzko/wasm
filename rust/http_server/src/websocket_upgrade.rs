@@ -33,11 +33,11 @@ impl UpgradeResponseHandler {
             HttpVersion::V1_1,
             StatusCode::new(101)?,
             ReasonPhrase::new("Switching Protocols")?,
-            "Switching to WebSocket protocol".to_string(),
+            "".to_string(),
         );
         let mut headers = response.header_mut();
         headers.add_field(HeaderField::new("Upgrade", "websocket")?);
-        headers.add_field(HeaderField::new("Connection", "Upgrade")?);
+        headers.add_field(HeaderField::new("Connection", "upgrade")?);
 
         let sec_websocket_accept = self.compute_sec_websocket_accept()?;
 

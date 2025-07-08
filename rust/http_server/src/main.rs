@@ -84,12 +84,35 @@ fn handle_client(mut stream: TcpStream) -> Result<()> {
 
     let write_buf = websocket_upgrade.to_string();
     stream.write_all(write_buf.as_bytes())?;
+    stream.flush()?;
     websocket_message_loop(stream)?;
     Ok(())
 }
 
 fn websocket_message_loop(mut stream: TcpStream) -> Result<()> {
-    loop {}
+    let mut buffer = [0u8; 4096];
+
+    loop {
+        match stream.read(&mut buffer) {
+            Ok(0) => {
+                info!("Client disconnected");
+                return Ok(());
+            }
+            Ok(bytes_read) => {
+                info!(
+                    "Received {} bytes: {:02x?}",
+                    bytes_read,
+                    &buffer[..bytes_read]
+                );
+                let first_byte = &buffer[..1];
+                info!("Received first byte: {:0b}", first_byte[0]);
+            }
+            Err(e) => {
+                error!("Error reading from stream: {}", e);
+                return Err(anyhow!("Error reading from stream: {}", e));
+            }
+        }
+    }
 }
 
 fn main() -> std::io::Result<()> {
