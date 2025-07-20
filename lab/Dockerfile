@@ -24,7 +24,7 @@ RUN set -eux && \
     curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
     apt-get update && \
-    apt-get install -y docker-ce-cli bash-completion
+    apt-get install -y docker-ce-cli bash-completion podman
 
 WORKDIR /workspace
 
@@ -40,6 +40,12 @@ RUN curl -fsSL -o ./k9s https://github.com/derailed/k9s/releases/download/v0.50.
     rm ./k9s
 
 COPY .bashrc /root/.bashrc
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rustup target add wasm32-wasip1
+
+RUN curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash
 
 COPY entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/entrypoint.sh

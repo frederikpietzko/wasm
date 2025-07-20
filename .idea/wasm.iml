@@ -3,7 +3,11 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/rust/http_server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/rust/http_server_2/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rust/ws_server/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/http_server/target" />
+      <excludeFolder url="file://$MODULE_DIR$/rust/http_server_2/target" />
       <excludeFolder url="file://$MODULE_DIR$/rust/ws_server/target" />
     </content>
     <orderEntry type="inheritedJdk" />

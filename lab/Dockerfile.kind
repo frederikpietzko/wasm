@@ -1,0 +1,21 @@
+FROM ubuntu:24.04 AS builder
+WORKDIR /data
+RUN DEBIAN_FRONTEND=noninteractive apt update \
+    && DEBIAN_FRONTEND=noninteractive apt install -y \
+    curl \
+    git \
+    wget
+RUN wget -O containerd-shim-wasmedge-v1.tar.gz https://github.com/containerd/runwasi/releases/download/containerd-shim-wasmedge%2Fv0.6.0/containerd-shim-wasmedge-x86_64-linux-musl.tar.gz && \
+    tar -xzf containerd-shim-wasmedge-v1.tar.gz && \
+    rm containerd-shim-wasmedge-v1.tar.gz && \
+    chmod +x containerd-shim-wasmedge-v1
+
+FROM kindest/node:v1.32.5 AS base
+
+COPY config.toml /etc/containerd/config.toml
+
+WORKDIR /data
+COPY --from=builder /data/containerd-shim-wasmedge-v1 .
+RUN chmod +x containerd-shim-wasmedge-v1 && \
+    install containerd-shim-wasmedge-v1 /usr/local/bin
+
