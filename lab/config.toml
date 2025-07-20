@@ -1,2 +1,2 @@
 [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.wasm]
-  runtime_type = "io.containerd.wasmtime.v1"
+  runtime_type = "io.containerd.wasmedge.v1"

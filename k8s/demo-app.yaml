@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasi-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wasi-demo
+  template:
+    metadata:
+      labels:
+        app: wasi-demo
+    spec:
+      runtimeClassName: wasm
+      containers:
+        - name: demo
+          image: ghcr.io/containerd/runwasi/wasi-demo-app:latest
