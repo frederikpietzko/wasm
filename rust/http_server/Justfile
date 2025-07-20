@@ -3,4 +3,4 @@ build:
 release:
     cargo build --target wasm32-wasip1 --release
 run: build
-	RUST_BACKTRACE=1 RUST_LOG=debug wasmedge target/wasm32-wasip1/debug/ws_server.wasm
+	RUST_BACKTRACE=1 RUST_LOG=debug wasmedge target/wasm32-wasip1/debug/http_server.wasm

@@ -1,0 +1,15 @@
+[package]
+name = "http_server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bytecodec = "0.4.15"
+httpcodec = "0.2.3"
+wasmedge_wasi_socket = "0.5.5"
+uuid = { version = "1.17.0", features = ["v4"] }
+base64 = "0.22.1"
+sha1 = "0.10"
+anyhow = "1.0.98"
+log = "0.4.27"
+env_logger = "0.11.8"
