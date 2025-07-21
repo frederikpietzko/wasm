@@ -1,6 +1,0 @@
-build:
-	cargo build
-release:
-    cargo build release
-run: build
-	cargo run
