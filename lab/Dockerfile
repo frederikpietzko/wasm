@@ -1,4 +1,22 @@
-FROM debian:bookworm-slim
+FROM ubuntu:24.04 AS builder
+WORKDIR /data
+
+RUN DEBIAN_FRONTEND=noninteractive apt update \
+    && DEBIAN_FRONTEND=noninteractive apt install -y \
+    curl \
+    git \
+    bash \
+    ca-certificates \
+    build-essential \
+    gnupg 
+
+RUN git clone https://github.com/containers/crun 
+RUN cd crun && \
+    ./autogen.sh && \
+    ./configure --with-wasmedge && \
+    make 
+
+FROM debian:bookworm-slim AS base
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -24,9 +42,13 @@ RUN set -eux && \
     curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
     apt-get update && \
-    apt-get install -y docker-ce-cli bash-completion podman
+    apt-get install -y docker-ce-cli bash-completion podman 
+
 
 WORKDIR /workspace
+
+COPY --from=builder /data/crun/crun .
+RUN mv crun $(which crun)
 
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 RUN chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
