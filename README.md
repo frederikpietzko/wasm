@@ -109,7 +109,7 @@ podman build \
   .
 ```
 
-You can now run this image with podman. Note that I configured `crun` with wasm support. This does not work out of the box. If you are interested in how to do that look at the builder in `lab/Dockerfile`.
+You can now run this image with podman if you have crun support with wasmedge configured. This does not work in this lab setup but it would look like this:
 
 ```sh
 podman run --rm --annotation module.wasm.image/variant=compat-smart wasm_http_server
