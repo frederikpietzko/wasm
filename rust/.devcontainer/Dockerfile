@@ -6,7 +6,9 @@ RUN cargo install just
 
 # Add the wasm32-wasi target to the toolchain
 RUN rustup target add wasm32-wasip1
+RUN rustup target add wasm32-wasip2
 # Install WasmEdge
 RUN curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash
+run curl https://wasmtime.dev/install.sh -ssf | bash
 
 RUN echo ". /home/vscode/.wasmedge/env" >> $HOME/.profile
