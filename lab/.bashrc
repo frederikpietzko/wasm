@@ -9,6 +9,8 @@ if [ -f /root/.wasmedge/env ]; then
     . /root/.wasmedge/env
 fi
 
+export PATH="$PATH:/workspace/wabt/bin"
+
 source <(docker completion bash)
 source <(kubectl completion bash)
 
