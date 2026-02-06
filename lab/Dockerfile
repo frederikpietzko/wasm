@@ -57,7 +57,8 @@ COPY .bashrc /root/.bashrc
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup target add wasm32-wasip1 
+RUN rustup target add wasm32-wasip1
+RUN rustup target add wasm32-wasip2
 
 RUN curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash 
 
